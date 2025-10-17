@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarifario Interactivo 2025 | Elements Tecnologias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Teal -->
+    <!-- Application Structure Plan: The SPA is designed as a user-centric tool, not just a price list. It starts with a hero section, followed by a sticky nav for quick access. Key sections are: 1) Featured Packages (high-value offerings), 2) Tabbed Individual Services (for organized browsing), 3) An interactive Bar Chart for price comparison (allowing COP/USD toggle), and 4) An interactive Service Estimator/Calculator. This structure guides the user from general offerings to specific, personalized cost calculation, transforming a passive viewing experience into an active planning tool, which is more engaging and likely to lead to a conversion. -->
+    <!-- Visualization & Content Choices: 
+        - Packages/Services -> Goal: Inform/Organize -> Presentation: Tailwind CSS Cards in a grid. Interaction: Placed in logical sections, with buttons to add items to the estimator. Justification: Cards are a modern, scannable, and mobile-friendly way to present distinct service offerings.
+        - Price Comparison -> Goal: Compare -> Viz: Horizontal Bar Chart. Library: Chart.js. Interaction: A toggle allows users to switch the chart's data between COP and USD in real-time. Justification: A bar chart is excellent for comparing discrete values. The currency toggle adds significant utility for international clients.
+        - Cost Estimation -> Goal: Engage/Inform -> Presentation: A checklist of all services and a real-time updating total. Method: Vanilla JS. Interaction: Users select services via checkboxes, and the total cost is instantly calculated and displayed. Justification: This is the core interactive "tool" aspect of the page, providing immediate value and encouraging user engagement.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .tab-active {
+            border-color: #0d9488; /* teal-600 */
+            color: #0d9488;
+            background-color: #f0fdfa; /* teal-50 */
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-extrabold text-teal-700 text-xl">Elements Tecnologias</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#packages" class="text-stone-600 hover:bg-teal-50 hover:text-teal-700 px-3 py-2 rounded-md text-sm font-medium">Paquetes</a>
+                        <a href="#services" class="text-stone-600 hover:bg-teal-50 hover:text-teal-700 px-3 py-2 rounded-md text-sm font-medium">Servicios</a>
+                        <a href="#calculator" class="text-stone-600 hover:bg-teal-50 hover:text-teal-700 px-3 py-2 rounded-md text-sm font-medium">Calculadora</a>
+                        <a href="#contact" class="bg-teal-600 text-white hover:bg-teal-700 px-4 py-2 rounded-md text-sm font-bold shadow">Contactar</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="bg-white">
+            <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl md:text-6xl">
+                    <span class="block">Tarifario de Servicios 2025</span>
+                    <span class="block text-teal-600">Diseño Gráfico & UI</span>
+                </h1>
+                <p class="mt-6 max-w-lg mx-auto text-xl text-stone-600">
+                    Soluciones visuales creativas para potenciar tu marca. Explora mis servicios y calcula un estimado para tu próximo proyecto.
+                </p>
+            </div>
+        </section>
+
+        <!-- Packages Section -->
+        <section id="packages" class="py-16 sm:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-extrabold text-stone-900">Paquetes Destacados</h2>
+                    <p class="mt-4 text-lg text-stone-600">Soluciones completas pensadas para tus necesidades más comunes. La mejor relación valor-precio.</p>
+                </div>
+                <div id="packages-container" class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Package cards will be injected here by JS -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Individual Services Section -->
+        <section id="services" class="py-16 sm:py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-extrabold text-stone-900">Servicios Individuales</h2>
+                    <p class="mt-4 text-lg text-stone-600">Elige los servicios específicos que necesitas para tu proyecto. Flexibilidad total a tu alcance.</p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="mt-10 max-w-xl mx-auto">
+                    <div class="sm:flex sm:justify-center border-b border-stone-200">
+                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                            <button id="tab-design" class="tab-btn tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Diseño Gráfico</button>
+                            <button id="tab-identity" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 font-medium text-sm">Identidad Visual</button>
+                             <button id="tab-hourly" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 font-medium text-sm">Por Hora y Adicionales</button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Service Cards Container -->
+                <div id="services-container" class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Service cards for the active tab will be injected here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Comparison Chart Section -->
+        <section id="comparison" class="py-16 sm:py-24">
+             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-extrabold text-stone-900">Comparador de Precios</h2>
+                    <p class="mt-4 text-lg text-stone-600">Visualiza y compara los costos de los servicios individuales para tomar la mejor decisión.</p>
+                </div>
+
+                <div class="mt-8 max-w-sm mx-auto flex items-center justify-center space-x-4">
+                    <span class="font-medium text-stone-700">COP</span>
+                    <label for="currency-toggle" class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" value="" id="currency-toggle" class="sr-only peer">
+                      <div class="w-14 h-7 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                    <span class="font-medium text-stone-700">USD</span>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+             </div>
+        </section>
+
+
+        <!-- Calculator Section -->
+        <section id="calculator" class="py-16 sm:py-24 bg-teal-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:grid lg:grid-cols-3 lg:gap-8">
+                    <div class="lg:col-span-1">
+                        <h2 class="text-3xl font-extrabold text-stone-900">Calculadora de Estimado</h2>
+                        <p class="mt-4 text-lg text-stone-600">Selecciona los servicios que te interesan para obtener un costo total aproximado al instante. Este es el primer paso para materializar tu proyecto.</p>
+                    </div>
+                    <div class="mt-12 lg:mt-0 lg:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6" id="calculator-options">
+                            <!-- Calculator options will be injected here -->
+                        </div>
+                        <div class="mt-10 bg-white p-6 rounded-lg shadow-lg">
+                           <h3 class="text-lg font-bold text-stone-900">Total Estimado:</h3>
+                           <p class="mt-2 text-4xl font-extrabold text-teal-600" id="total-cop">$0 COP</p>
+                           <p class="mt-1 text-2xl font-bold text-stone-500" id="total-usd">$0 USD</p>
+                           <p class="mt-4 text-sm text-stone-500">Este es un estimado. El precio final puede variar según la complejidad. Contáctame para una cotización detallada.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <footer id="contact" class="bg-stone-800">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 text-center">
+                <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">¿Listo para empezar?</h2>
+                <p class="mt-4 text-lg leading-6 text-stone-300">Hablemos sobre tu proyecto. Estaremos encantados de ayudarte a alcanzar tus objetivos.</p>
+                <div class="mt-8">
+                    <a href="mailto:contacto@luchovelez.com" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-teal-700 bg-white hover:bg-stone-50 shadow-md">
+                        contacto@elementstecnologias.com
+                    </a>
+                </div>
+                 <div class="mt-8">
+                    <a href="#" class="text-base font-medium text-stone-300 hover:text-white">Explora nuestro portafolio &rarr;</a>
+                 </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const allData = {
+                packages: [
+                    { name: 'Branding Esencial', services: 'Logo básico + Manual de identidad visual (básico).', priceCOP: 1650000, priceUSD: 415 },
+                    { name: 'Start-up Digital', services: 'Logo básico + 5 plantillas para redes sociales.', priceCOP: 1000000, priceUSD: 250 },
+                    { name: 'Contenido Mensual', services: '8 posts estáticos + 2 carruseles o reels al mes.', priceCOP: 1150000, priceUSD: 290 },
+                ],
+                services: [
+                    { id: 'dg1', category: 'design', name: 'Post para redes (estático)', priceCOP: 84500, priceUSD: 22, description: 'Diseño de alto impacto adaptado a la identidad de tu marca para captar la atención de tu audiencia.' },
+                    { id: 'dg2', category: 'design', name: 'Carrusel (4-6 slides)', priceCOP: 286000, priceUSD: 72, description: 'Secuencia visualmente atractiva para contar una historia, educar o presentar un producto de forma dinámica.' },
+                    { id: 'dg3', category: 'design', name: 'Flyer / Afiche / Brochure', priceCOP: 455000, priceUSD: 117, description: 'Piezas informativas con un diseño profesional, listas para impresión o para brillar en medios digitales.' },
+                    { id: 'dg4', category: 'design', name: 'Historia o reel corto', priceCOP: 78000, priceUSD: 20, description: 'Contenido vertical animado y optimizado para maximizar el alcance y la interacción en historias.' },
+                    { id: 'id1', category: 'identity', name: 'Diseño de Logo Básico', priceCOP: 650000, priceUSD: 163, description: 'Creación de un logotipo memorable y versátil que represente la esencia de tu marca.' },
+                    { id: 'id2', category: 'identity', name: 'Manual de Identidad Visual', priceCOP: 1105000, priceUSD: 280, description: 'Guía esencial con tipografía, paleta de colores y usos correctos para mantener la coherencia de tu marca.' },
+                    { id: 'id3', category: 'identity', name: 'Rediseño de Logo', priceCOP: 585000, priceUSD: 143, description: 'Modernización de tu logotipo actual para reflejar la evolución de tu marca y conectar con nuevas audiencias.' },
+                    { id: 'hr1', category: 'hourly', name: 'Diseño gráfico general', priceCOP: 52000, priceUSD: 13, description: 'Ideal para ajustes, creación de piezas puntuales o soporte visual continuo. (Precio por hora)'},
+                    { id: 'hr2', category: 'hourly', name: 'Diseño UI (Figma)', priceCOP: 71500, priceUSD: 18, description: 'Diseño de interfaces intuitivas y prototipos funcionales para aplicaciones o sitios web. (Precio por hora)'},
+                    { id: 'ad1', category: 'hourly', name: 'Archivos Editables (.ai, .fig)', priceCOP: 0, priceUSD: 0, description: 'Otorga control total sobre los diseños. (+30% del valor del proyecto)'},
+                    { id: 'ad2', category: 'hourly', name: 'Ronda de Ajustes Adicional', priceCOP: 40000, priceUSD: 10, description: 'Para cambios adicionales fuera de las dos rondas incluidas en cada proyecto.'}
+                ]
+            };
+            
+            const packagesContainer = document.getElementById('packages-container');
+            const servicesContainer = document.getElementById('services-container');
+            const calculatorOptionsContainer = document.getElementById('calculator-options');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            let currentTab = 'design';
+
+            const formatCOP = (value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+            const formatUSD = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
+            function createCard(item, type) {
+                const isPackage = type === 'package';
+                const priceTextCOP = item.priceCOP > 0 ? formatCOP(item.priceCOP) : '';
+                const priceTextUSD = item.priceUSD > 0 ? formatUSD(item.priceUSD) : '';
+
+                return `
+                    <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col transition duration-300 hover:shadow-2xl hover:-translate-y-1">
+                        <h3 class="text-xl font-bold text-stone-900">${item.name}</h3>
+                        <p class="mt-2 text-stone-600 flex-grow">${isPackage ? item.services : item.description}</p>
+                        <div class="mt-4">
+                            ${priceTextCOP ? `<span class="text-2xl font-extrabold text-teal-600">${priceTextCOP}</span>` : ''}
+                            ${priceTextUSD ? `<span class="block text-lg font-medium text-stone-500">${priceTextUSD}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderPackages() {
+                packagesContainer.innerHTML = allData.packages.map(pkg => createCard(pkg, 'package')).join('');
+            }
+            
+            function renderServices(category) {
+                const filteredServices = allData.services.filter(s => s.category === category);
+                servicesContainer.innerHTML = filteredServices.map(svc => createCard(svc, 'service')).join('');
+            }
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('tab-active'));
+                    button.classList.add('tab-active');
+                    currentTab = button.id.replace('tab-', '');
+                    renderServices(currentTab);
+                });
+            });
+
+            function renderCalculatorOptions() {
+                const allSelectableItems = [...allData.packages.map(p => ({...p, id: `pkg-${p.name.replace(/\s+/g, '')}`})), ...allData.services];
+                calculatorOptionsContainer.innerHTML = allSelectableItems
+                    .filter(item => item.id !== 'ad1') // Exclude editable files from checkbox list
+                    .map(item => `
+                    <div class="relative flex items-start">
+                        <div class="flex h-6 items-center">
+                            <input id="${item.id}" data-price-cop="${item.priceCOP}" data-price-usd="${item.priceUSD}" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600 calculator-item">
+                        </div>
+                        <div class="ml-3 text-sm leading-6">
+                            <label for="${item.id}" class="font-medium text-stone-900">${item.name}</label>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('.calculator-item').forEach(item => {
+                    item.addEventListener('change', updateCalculatorTotal);
+                });
+            }
+
+            function updateCalculatorTotal() {
+                let totalCOP = 0;
+                let totalUSD = 0;
+                document.querySelectorAll('.calculator-item:checked').forEach(item => {
+                    totalCOP += parseFloat(item.dataset.priceCop);
+                    totalUSD += parseFloat(item.dataset.priceUsd);
+                });
+                document.getElementById('total-cop').textContent = formatCOP(totalCOP);
+                document.getElementById('total-usd').textContent = formatUSD(totalUSD);
+            }
+
+            // Chart.js implementation
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const individualServices = allData.services;
+            let currentCurrency = 'COP';
+
+            const chartConfig = {
+                type: 'bar',
+                data: {
+                    labels: individualServices.map(s => s.name.length > 25 ? s.name.substring(0, 22) + '...' : s.name),
+                    datasets: [{
+                        label: `Precio en ${currentCurrency}`,
+                        data: individualServices.map(s => s.priceCOP),
+                        backgroundColor: '#0d9488', // teal-600
+                        borderColor: '#0f766e', // teal-700
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        const formatter = currentCurrency === 'COP' ? formatCOP : formatUSD;
+                                        label += formatter(context.parsed.x);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                   const formatter = currentCurrency === 'COP' ? formatCOP : formatUSD;
+                                   return formatter(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            const priceChart = new Chart(ctx, chartConfig);
+
+            document.getElementById('currency-toggle').addEventListener('change', (e) => {
+                currentCurrency = e.target.checked ? 'USD' : 'COP';
+                priceChart.data.datasets[0].label = `Precio en ${currentCurrency}`;
+                priceChart.data.datasets[0].data = individualServices.map(s => e.target.checked ? s.priceUSD : s.priceCOP);
+                priceChart.update();
+            });
+
+            // Initial renders
+            renderPackages();
+            renderServices(currentTab);
+            renderCalculatorOptions();
+        });
+    </script>
+</body>
+</html>
+
